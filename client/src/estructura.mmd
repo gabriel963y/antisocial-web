@@ -1,0 +1,56 @@
+flowchart TD
+    main["main.tsx"] --> App["App.tsx\n(Router con react-router-dom)"]
+
+    Types["types/\nUser, Post, Comment, Tag, PostImage, AuthState\n(tipos compartidos)"]
+
+    subgraph API["lib/api/"]
+        client["client.ts\n(fetch wrapper: get, post)"]
+        index["index.ts\n(exporta funciones:\nuserService.getAll,\npostService.create,\ncommentService.getByPost, etc.)"]
+        client --> index
+    end
+    index --> Types
+
+    Context["context/AuthContext.tsx\n(useContext + localStorage:\nuser, login, logout)"]
+    Context --> Types
+    Context --> index
+
+    Hooks["hooks/\nuseAuth, useFetch\n(consumen context y api)"]
+    Hooks --> Context
+    Hooks --> Types
+
+    subgraph Components["components/"]
+        Layout["layout/\nHeader, Footer, MainLayout"]
+        UI["ui/\nProtectedRoute, Button,\nSpinner, Card, TagBadge"]
+    end
+    Layout --> Hooks
+    UI --> Hooks
+
+    subgraph Features["features/"]
+        Auth["auth/\nLogin, Register"]
+        Posts["posts/\nFeed, PostDetail, CreatePost"]
+        Comments["comments/\nCommentList, CommentForm"]
+        Profile["profile/\nProfile"]
+    end
+
+    Auth --> Context
+    Auth --> index
+    Auth --> Types
+
+    Posts --> Context
+    Posts --> index
+    Posts --> Types
+
+    Comments --> index
+    Comments --> Types
+
+    Profile --> Context
+    Profile --> index
+    Profile --> Types
+
+    App --> Layout
+    App --> Auth
+    App --> Posts
+    App --> Comments
+    App --> Profile
+
+    stores["stores/\n(opcional: estado extra\ncon Zustand)"]
