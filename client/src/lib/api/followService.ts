@@ -13,7 +13,7 @@ export const followService = {
         api.get<FollowDoc[]>(`/follow/${encodeURIComponent(nick)}/following`),
 
     follow: (follower: string, following: string) =>
-        api.post<{ message: string }>(`/follow/${encodeURIComponent(follower)}/${encodeURIComponent(following)}`),
+        api.post<{ message: string }>(`/follow/${encodeURIComponent(follower)}/${encodeURIComponent(following)}`, undefined),
 
     unfollow: (follower: string, following: string) =>
         api.delete<{ message: string }>(`/follow/${encodeURIComponent(follower)}/${encodeURIComponent(following)}`),
