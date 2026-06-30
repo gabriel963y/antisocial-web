@@ -1,30 +1,33 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useNavigate, Link } from 'react-router-dom'
-import { toast } from 'sonner'
-import { api, ApiError } from '../../lib/api/client.ts'
-import { ENDPOINTS } from '../../lib/api/endpoints.ts'
-import { useAuth } from '../../hooks/useAuth.ts'
-import { useConnectionStatus } from '../../hooks/useConnectionStatus.ts'
-import { BlockTrail } from '../../components/ui/BlockTrail.tsx'
-import { Button } from '../../components/ui/Button.tsx'
-import { Input } from '../../components/ui/Input.tsx'
-import type { User } from '../../types/user.ts'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { api, ApiError } from '../../lib/api/client.ts';
+import { ENDPOINTS } from '../../lib/api/endpoints.ts';
+import { useAuth } from '../../hooks/useAuth.ts';
+import { useConnectionStatus } from '../../hooks/useConnectionStatus.ts';
+import { BlockTrail } from '../../components/ui/BlockTrail.tsx';
+import { Button } from '../../components/ui/Button.tsx';
+import { Input } from '../../components/ui/Input.tsx';
+import type { User } from '../../types/user.ts';
 
 const loginSchema = z.object({
     nickName: z.string().min(1, 'el usuario es obligatorio'),
-})
+    password: z
+        .string()
+        .min(6, 'la contraseña debe ser: "123456" (sin comillas)'),
+});
 
-type LoginForm = z.infer<typeof loginSchema>
+type LoginForm = z.infer<typeof loginSchema>;
 
 export function Login() {
-    const navigate = useNavigate()
-    const { login } = useAuth()
-    const connected = useConnectionStatus()
-    const [isLoading, setIsLoading] = useState(false)
-    const [serverError, setServerError] = useState<string | null>(null)
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const connected = useConnectionStatus();
+    const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null);
 
     const {
         register,
@@ -32,30 +35,37 @@ export function Login() {
         formState: { errors },
     } = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
-    })
+    });
 
     const onSubmit = async (data: LoginForm) => {
-        setIsLoading(true)
-        setServerError(null)
+        setIsLoading(true);
+        setServerError(null);
+
+        if (data.password !== '123456') {
+            // validamos localmente la contraseña
+            setServerError('contraseña incorrecta');
+            setIsLoading(false); // deshabilitamos para volver a intentar
+            return;
+        }
 
         try {
             const user = await api.get<User>(
-                `${ENDPOINTS.USERS}/${encodeURIComponent(data.nickName)}`,
-            )
+                `${ENDPOINTS.USERS}/${encodeURIComponent(data.nickName)}`
+            );
 
-            login(user)
-            toast.success(`bienvenido de vuelta, ${user.nickName}`)
-            navigate('/', { replace: true })
+            login(user);
+            toast.success(`bienvenido de vuelta, ${user.nickName}`);
+            navigate('/', { replace: true });
         } catch (err) {
             if (err instanceof ApiError && err.status === 404) {
-                setServerError('usuario no encontrado')
+                setServerError('usuario no encontrado');
             } else {
-                setServerError('error de conexión')
+                setServerError('error de conexión');
             }
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="flex min-h-dvh items-center justify-center px-4">
@@ -75,12 +85,23 @@ export function Login() {
                         <span>iniciá sesión para continuar</span>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="flex flex-col gap-5"
+                    >
                         <Input
                             label="usuario"
                             placeholder="tu usuario"
                             error={errors.nickName?.message}
                             {...register('nickName')}
+                        />
+
+                        <Input
+                            type="password"
+                            label="contraseña"
+                            placeholder="tu contraseña"
+                            error={errors.password?.message}
+                            {...register('password')}
                         />
 
                         {serverError && (
@@ -107,11 +128,13 @@ export function Login() {
 
                 <div className="flex items-center gap-3 border-t border-lime-400/10 bg-lime-400/[0.01] px-3 py-2">
                     <BlockTrail connected={connected} />
-                    <span className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/30' : 'text-rose-400/40'}`}>
+                    <span
+                        className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/30' : 'text-rose-400/40'}`}
+                    >
                         [{connected ? 'conectado' : 'desconectado'}]
                     </span>
                 </div>
             </div>
         </div>
-    )
+    );
 }

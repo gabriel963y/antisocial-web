@@ -1,30 +1,30 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useNavigate, Link } from 'react-router-dom'
-import { toast } from 'sonner'
-import { api, ApiError } from '../../lib/api/client.ts'
-import { ENDPOINTS } from '../../lib/api/endpoints.ts'
-import { useConnectionStatus } from '../../hooks/useConnectionStatus.ts'
-import { BlockTrail } from '../../components/ui/BlockTrail.tsx'
-import { Button } from '../../components/ui/Button.tsx'
-import { Input } from '../../components/ui/Input.tsx'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { api, ApiError } from '../../lib/api/client.ts';
+import { ENDPOINTS } from '../../lib/api/endpoints.ts';
+import { useConnectionStatus } from '../../hooks/useConnectionStatus.ts';
+import { BlockTrail } from '../../components/ui/BlockTrail.tsx';
+import { Button } from '../../components/ui/Button.tsx';
+import { Input } from '../../components/ui/Input.tsx';
 
 const registerSchema = z.object({
     nickName: z.string().min(1, 'el usuario es obligatorio'),
     email: z.string().email('email inválido'),
     name: z.string().min(1, 'el nombre es obligatorio'),
     surname: z.string().optional(),
-})
+});
 
-type RegisterForm = z.infer<typeof registerSchema>
+type RegisterForm = z.infer<typeof registerSchema>;
 
 export function Register() {
-    const navigate = useNavigate()
-    const connected = useConnectionStatus()
-    const [isLoading, setIsLoading] = useState(false)
-    const [serverError, setServerError] = useState<string | null>(null)
+    const navigate = useNavigate();
+    const connected = useConnectionStatus();
+    const [isLoading, setIsLoading] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null);
 
     const {
         register,
@@ -32,11 +32,11 @@ export function Register() {
         formState: { errors },
     } = useForm<RegisterForm>({
         resolver: zodResolver(registerSchema),
-    })
+    });
 
     const onSubmit = async (data: RegisterForm) => {
-        setIsLoading(true)
-        setServerError(null)
+        setIsLoading(true);
+        setServerError(null);
 
         try {
             await api.post(ENDPOINTS.USERS, {
@@ -44,20 +44,22 @@ export function Register() {
                 email: data.email,
                 name: data.name,
                 surname: data.surname || undefined,
-            })
+            });
 
-            toast.success('cuenta creada')
-            navigate('/login', { replace: true })
+            toast.success(
+                'Cuenta creada. Iniciá sesión con la contraseña: 123456'
+            );
+            navigate('/login', { replace: true });
         } catch (err) {
             if (err instanceof ApiError && err.status === 409) {
-                setServerError('el usuario o email ya existe')
+                setServerError('el usuario o email ya existe');
             } else {
-                setServerError('error de conexión')
+                setServerError('error de conexión');
             }
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="flex min-h-dvh items-center justify-center px-4">
@@ -77,7 +79,10 @@ export function Register() {
                         <span>creá tu cuenta</span>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="flex flex-col gap-5"
+                    >
                         <Input
                             label="usuario"
                             placeholder="elegí un usuario"
@@ -131,11 +136,13 @@ export function Register() {
 
                 <div className="flex items-center gap-3 border-t border-lime-400/10 bg-lime-400/[0.01] px-3 py-2">
                     <BlockTrail connected={connected} />
-                    <span className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/30' : 'text-rose-400/40'}`}>
+                    <span
+                        className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/30' : 'text-rose-400/40'}`}
+                    >
                         [{connected ? 'conectado' : 'desconectado'}]
                     </span>
                 </div>
             </div>
         </div>
-    )
+    );
 }
