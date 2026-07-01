@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -24,7 +24,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export function Login() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const connected = useConnectionStatus();
     const [isLoading, setIsLoading] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
@@ -36,6 +36,12 @@ export function Login() {
     } = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
     });
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const onSubmit = async (data: LoginForm) => {
         setIsLoading(true);
@@ -54,7 +60,6 @@ export function Login() {
 
             login(user);
             toast.success(`bienvenido de vuelta, ${user.nickName}`);
-            navigate('/', { replace: true });
         } catch (err) {
             if (err instanceof ApiError && err.status === 404) {
                 setServerError('usuario no encontrado');
