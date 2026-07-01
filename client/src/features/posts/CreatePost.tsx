@@ -173,9 +173,9 @@ export function CreatePost({ onClose }: CreatePostProps) {
     }
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 px-4">
-            <div className="max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-2xl border border-lime-400/30 bg-zinc-950 text-lime-100 shadow-2xl">
-                <div className="flex items-center justify-between border-b border-lime-400/10 px-5 py-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 px-4" onClick={(e) => e.stopPropagation()}>
+            <div className="glow-pulse max-h-[90dvh] w-full max-w-xl overflow-y-auto rounded-2xl border border-lime-400/40 bg-zinc-950 text-lime-100 shadow-2xl">
+                <div className="flex items-center justify-between border-b border-lime-400/15 px-5 py-4">
                     <h2 className="text-lg font-semibold text-lime-300">
                         Crear publicación
                     </h2>
@@ -183,7 +183,7 @@ export function CreatePost({ onClose }: CreatePostProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-full px-3 py-1 text-xl text-lime-400/60 hover:bg-lime-400/10 hover:text-lime-300"
+                        className="rounded-full px-3 py-1 text-xl text-lime-400/80 hover:bg-lime-400/10 hover:text-lime-300"
                     >
                         ×
                     </button>
@@ -197,7 +197,7 @@ export function CreatePost({ onClose }: CreatePostProps) {
                     )}
 
                     <div>
-                        <label className="mb-2 block text-xs text-lime-400/50">
+                        <label className="mb-2 block text-xs text-lime-400/70">
                             Descripción
                         </label>
 
@@ -207,12 +207,12 @@ export function CreatePost({ onClose }: CreatePostProps) {
                                 setDescription(event.target.value)
                             }
                             placeholder="¿Qué estás pensando?"
-                            className="min-h-32 w-full resize-none rounded-xl border border-lime-400/30 bg-black/40 p-4 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/70"
+                            className="min-h-32 w-full resize-none rounded-xl border border-lime-400/40 bg-black/40 p-4 text-sm text-lime-100 outline-none placeholder:text-lime-400/50 focus:border-lime-400/70"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <p className="text-xs text-lime-400/50">
+                        <p className="text-xs text-lime-400/70">
                             Imágenes opcionales
                         </p>
 
@@ -228,14 +228,14 @@ export function CreatePost({ onClose }: CreatePostProps) {
                                         )
                                     }
                                     placeholder="URL de imagen"
-                                    className="w-full rounded-xl border border-lime-400/20 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/60"
+                                    className="w-full rounded-xl border border-lime-400/30 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/50 focus:border-lime-400/60"
                                 />
 
                                 {imageUrls.length > 1 && (
                                     <button
                                         type="button"
                                         onClick={() => removeImageInput(index)}
-                                        className="rounded-xl border border-red-400/30 px-3 text-xs text-red-300 hover:bg-red-400/10"
+                                        className="rounded-xl border border-red-400/40 px-3 text-xs text-red-300 hover:bg-red-400/10"
                                     >
                                         quitar
                                     </button>
@@ -246,14 +246,14 @@ export function CreatePost({ onClose }: CreatePostProps) {
                         <button
                             type="button"
                             onClick={addImageInput}
-                            className="text-xs text-lime-400/50 hover:text-lime-300"
+                            className="text-xs text-lime-400/70 hover:text-lime-300"
                         >
                             + agregar otra imagen
                         </button>
                     </div>
 
                     <div className="space-y-2">
-                        <p className="text-xs text-lime-400/50">
+                        <p className="text-xs text-lime-400/70">
                             Etiquetas
                         </p>
 
@@ -266,14 +266,14 @@ export function CreatePost({ onClose }: CreatePostProps) {
                                 }
                                 onKeyDown={handleTagKeyDown}
                                 placeholder="Ej: humor"
-                                className="w-full rounded-xl border border-lime-400/20 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/60"
+                                className="w-full rounded-xl border border-lime-400/30 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/50 focus:border-lime-400/60"
                             />
 
                             <button
                                 type="button"
                                 onClick={addTagToPost}
                                 disabled={!tagInput.trim()}
-                                className="rounded-xl border border-lime-400/30 px-4 text-xs font-semibold text-lime-400/70 hover:bg-lime-400/10 disabled:cursor-not-allowed disabled:opacity-30"
+                                className="rounded-xl border border-lime-400/40 px-4 text-xs font-semibold text-lime-400/70 hover:bg-lime-400/10 disabled:cursor-not-allowed disabled:opacity-30"
                             >
                                 agregar
                             </button>
@@ -288,11 +288,45 @@ export function CreatePost({ onClose }: CreatePostProps) {
                                         onClick={() =>
                                             removeTagFromPost(tagName)
                                         }
-                                        className="rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs text-lime-300 hover:border-red-400/40 hover:text-red-300"
+                                        className="rounded-full border border-lime-400/40 bg-lime-400/10 px-3 py-1 text-xs text-lime-300 hover:border-red-400/40 hover:text-red-300"
                                     >
                                         #{tagName} ×
                                     </button>
                                 ))}
+                            </div>
+                        )}
+
+                        {existingTags.length > 0 && (
+                            <div className="border-t border-lime-400/10 pt-3">
+                                <p className="mb-2 text-[10px] text-lime-400/45">
+                                    etiquetas existentes
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {existingTags.map((tag) => {
+                                        const tagName = normalizeTagName(getTagName(tag))
+                                        const isSelected = postTags.includes(tagName)
+                                        return (
+                                            <button
+                                                key={getTagId(tag)}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSelected) {
+                                                        removeTagFromPost(tagName)
+                                                    } else {
+                                                        setPostTags([...postTags, tagName])
+                                                    }
+                                                }}
+                                                className={`rounded-full border px-2.5 py-0.5 text-[10px] transition-colors ${
+                                                    isSelected
+                                                        ? 'border-lime-400/40 bg-lime-400/15 text-lime-300'
+                                                        : 'border-lime-400/20 bg-lime-400/[0.04] text-lime-400/50 hover:border-lime-400/40 hover:text-lime-400/80'
+                                                }`}
+                                            >
+                                                #{getTagName(tag)}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -300,7 +334,7 @@ export function CreatePost({ onClose }: CreatePostProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="w-full rounded-xl border border-lime-400/20 px-3 py-2 text-xs font-semibold text-lime-400/50 hover:bg-lime-400/10 sm:px-4 sm:py-3 sm:text-sm"
+                            className="w-full rounded-xl border border-lime-400/30 px-3 py-2 text-xs font-semibold text-lime-400/70 hover:bg-lime-400/10 sm:px-4 sm:py-3 sm:text-sm"
                         >
                             Cancelar
                         </button>

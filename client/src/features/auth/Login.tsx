@@ -8,9 +8,9 @@ import { api, ApiError } from '../../lib/api/client.ts';
 import { ENDPOINTS } from '../../lib/api/endpoints.ts';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { useConnectionStatus } from '../../hooks/useConnectionStatus.ts';
-import { BlockTrail } from '../../components/ui/BlockTrail.tsx';
 import { Button } from '../../components/ui/Button.tsx';
 import { Input } from '../../components/ui/Input.tsx';
+import { MatrixRain } from '../../components/effects/MatrixRain.tsx';
 import type { User } from '../../types/user.ts';
 
 const loginSchema = z.object({
@@ -42,9 +42,8 @@ export function Login() {
         setServerError(null);
 
         if (data.password !== '123456') {
-            // validamos localmente la contraseña
             setServerError('contraseña incorrecta');
-            setIsLoading(false); // deshabilitamos para volver a intentar
+            setIsLoading(false);
             return;
         }
 
@@ -68,23 +67,17 @@ export function Login() {
     };
 
     return (
-        <div className="flex min-h-dvh items-center justify-center px-4">
-            <div className="w-full max-w-sm border border-lime-400/10 bg-stone-950/90">
-                <div className="flex items-center gap-1.5 border-b border-lime-400/10 px-3 py-2">
-                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500/50" />
-                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500/50" />
-                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-lime-500/50" />
-                    <span className="ml-3 text-[10px] tracking-[0.2em] text-lime-400/30">
-                        ANTI-SOCIAL v1.0 — login
+        <div className="flicker flex min-h-dvh items-center justify-center px-4">
+            <MatrixRain />
+            <div className="scanline-overlay" />
+            <div className="glow-pulse relative z-10 w-full max-w-sm overflow-hidden rounded-2xl border border-lime-400/30 bg-zinc-950 shadow-2xl">
+                <div className="flex items-center justify-between border-b border-lime-400/15 px-5 py-4">
+                    <span className="text-xs font-semibold text-lime-300">
+                        iniciar sesión
                     </span>
                 </div>
 
-                <div className="p-6">
-                    <div className="mb-7 flex items-center gap-2 text-sm text-lime-400/50">
-                        <span className="text-lime-400/70">{'>'}</span>
-                        <span>iniciá sesión para continuar</span>
-                    </div>
-
+                <div className="p-5">
                     <form
                         onSubmit={handleSubmit(onSubmit)}
                         className="flex flex-col gap-5"
@@ -105,8 +98,8 @@ export function Login() {
                         />
 
                         {serverError && (
-                            <p className="border border-rose-400/15 bg-rose-400/[0.04] px-3 py-2.5 text-sm text-rose-400/80">
-                                ! {serverError}
+                            <p className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+                                {serverError}
                             </p>
                         )}
 
@@ -115,23 +108,28 @@ export function Login() {
                         </Button>
                     </form>
 
-                    <div className="mt-6 border-t border-lime-400/10 pt-4 text-center text-xs text-lime-400/25">
+                    <div className="mt-6 border-t border-lime-400/15 pt-4 text-center text-xs text-lime-400/45">
                         {'>'} ¿nuevo?{' '}
                         <Link
                             to="/register"
-                            className="text-lime-400/50 underline underline-offset-4 hover:text-lime-400 transition-colors"
+                            className="text-lime-400/70 underline underline-offset-4 hover:text-lime-300 transition-colors"
                         >
                             registrate
                         </Link>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 border-t border-lime-400/10 bg-lime-400/[0.01] px-3 py-2">
-                    <BlockTrail connected={connected} />
+                <div className="flex items-center gap-3 border-t border-lime-400/15 bg-lime-400/[0.01] px-5 py-3">
+                    <span className={`animate-signal ${connected ? 'text-lime-400' : 'text-rose-400/40'}`}>
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                    </span>
                     <span
-                        className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/30' : 'text-rose-400/40'}`}
+                        className={`text-[10px] uppercase tracking-wider ${connected ? 'text-lime-400/45' : 'text-rose-400/40'}`}
                     >
-                        [{connected ? 'conectado' : 'desconectado'}]
+                        {connected ? 'conectado' : 'desconectado'}
                     </span>
                 </div>
             </div>

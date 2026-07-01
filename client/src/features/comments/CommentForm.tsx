@@ -49,36 +49,44 @@ export function CommentForm({ postId, onCommentCreated }: CommentFormProps) {
         }
     }
 
+    const canSubmit = content.trim().length > 0 && !isLoading
+
     return (
         <form onSubmit={handleSubmit} className="space-y-2">
-            <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lime-400/20 bg-lime-400/[0.04]">
-                    <span className="text-xs font-semibold text-lime-400/60">
+            <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lime-400/30 bg-lime-400/[0.08]">
+                    <span className="text-xs font-semibold text-lime-400/80">
                         {user?.nickName?.charAt(0).toUpperCase() ?? '?'}
                     </span>
                 </div>
 
-                <div className="flex flex-1 items-center rounded-2xl bg-lime-400/[0.08] px-4 py-2">
+                <div className="flex flex-1 items-center rounded-xl border border-lime-400/30 bg-black/40 px-3 transition-colors focus-within:border-lime-400/50">
                     <textarea
                         value={content}
                         onChange={(event) => setContent(event.target.value)}
                         rows={1}
                         placeholder="Escribe un comentario..."
-                        className="max-h-24 min-h-8 w-full resize-none bg-transparent text-sm text-lime-100 outline-none placeholder:text-lime-400/30"
+                        className="max-h-24 min-h-9 w-full resize-none bg-transparent py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/50"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                if (canSubmit) handleSubmit(e as unknown as FormEvent<HTMLFormElement>)
+                            }
+                        }}
                     />
 
                     <button
                         type="submit"
-                        disabled={isLoading || !content.trim()}
-                        className="ml-3 text-lg text-lime-400/50 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-30"
+                        disabled={!canSubmit}
+                        className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm text-lime-400/70 transition-colors hover:bg-lime-400/10 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                        ➤
+                        ↑
                     </button>
                 </div>
             </div>
 
             {error && (
-                <p className="ml-12 text-xs text-rose-400/80">
+                <p className="ml-12 text-xs text-rose-400">
                     {error}
                 </p>
             )}

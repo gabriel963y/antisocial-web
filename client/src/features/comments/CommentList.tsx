@@ -7,13 +7,11 @@ import type { Comment } from '../../types/comment.ts'
 
 interface CommentListProps {
     postId: string
-    postOwnerNickName: string
     onCommentDeleted?: () => void
 }
 
 export function CommentList({
     postId,
-    postOwnerNickName,
     onCommentDeleted,
 }: CommentListProps) {
     const { user: currentUser } = useAuth()
@@ -120,7 +118,7 @@ export function CommentList({
 
     if (loading) {
         return (
-            <div className="py-4 text-center text-[10px] text-lime-400/20">
+            <div className="py-4 text-center text-[10px] text-lime-400/35">
                 cargando comentarios.
             </div>
         )
@@ -128,13 +126,11 @@ export function CommentList({
 
     if (comments.length === 0) {
         return (
-            <div className="py-4 text-center text-[10px] text-lime-400/20">
+            <div className="py-4 text-center text-[10px] text-lime-400/35">
                 sin comentarios
             </div>
         )
     }
-
-    const isOwner = currentUser?.nickName === postOwnerNickName
 
     return (
         <div className="space-y-3">
@@ -145,15 +141,15 @@ export function CommentList({
                 return (
                     <div
                         key={c._id}
-                        className="border border-lime-400/10 bg-stone-950/60 p-3"
+                        className="border border-lime-400/15 bg-stone-950/80 p-3"
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-lime-400/60">
+                                <p className="text-[11px] font-medium text-lime-400/80">
                                     @{c.user_nickName}
 
                                     {editedIds.has(c._id) && (
-                                        <span className="ml-1.5 text-[9px] italic text-lime-400/30">
+                                        <span className="ml-1.5 text-[9px] italic text-lime-400/50">
                                             editado
                                         </span>
                                     )}
@@ -162,7 +158,7 @@ export function CommentList({
 
                             <div className="flex shrink-0 flex-col items-end gap-1">
                                 {getCommentDate(c) && (
-                                    <p className="text-[9px] text-lime-400/20">
+                                    <p className="text-[9px] text-lime-400/35">
                                         {getCommentDate(c)}
                                     </p>
                                 )}
@@ -175,19 +171,19 @@ export function CommentList({
                                                 setEditingId(c._id)
                                                 setEditText(c.content)
                                             }}
-                                            className="text-[10px] uppercase tracking-wider text-lime-400/30 transition-colors hover:text-lime-400"
+                                            className="text-[10px] uppercase tracking-wider text-lime-400/50 transition-colors hover:text-lime-400"
                                         >
                                             editar
                                         </button>
                                     )}
 
-                                    {isOwner && !isEditing && (
+                                    {isAuthor && !isEditing && (
                                         <button
                                             type="button"
                                             onClick={() =>
                                                 setDeletingId(c._id)
                                             }
-                                            className="text-[10px] uppercase tracking-wider text-rose-400/40 transition-colors hover:text-rose-400"
+                                            className="text-[10px] uppercase tracking-wider text-rose-400/60 transition-colors hover:text-rose-400"
                                         >
                                             eliminar
                                         </button>
@@ -204,14 +200,14 @@ export function CommentList({
                                         setEditText(event.target.value)
                                     }
                                     rows={2}
-                                    className="resize-none border border-lime-400/15 bg-lime-400/[0.02] px-2 py-1.5 text-xs text-lime-300 outline-none focus:border-lime-400/40"
+                                    className="resize-none border border-lime-400/25 bg-lime-400/[0.05] px-2 py-1.5 text-xs text-lime-300 outline-none focus:border-lime-400/40"
                                 />
 
                                 <div className="flex gap-2">
                                     <button
                                         type="button"
                                         onClick={() => handleSaveEdit(c)}
-                                        className="border border-lime-400/50 bg-lime-400/[0.06] px-3 py-1 text-[10px] uppercase tracking-wider text-lime-400 transition-all hover:bg-lime-400 hover:text-stone-950"
+                                        className="border border-lime-400/50 bg-lime-400/[0.10] px-3 py-1 text-[10px] uppercase tracking-wider text-lime-400 transition-all hover:bg-lime-400 hover:text-stone-950"
                                     >
                                         guardar
                                     </button>
@@ -222,14 +218,14 @@ export function CommentList({
                                             setEditingId(null)
                                             setEditText('')
                                         }}
-                                        className="border border-lime-400/10 px-3 py-1 text-[10px] uppercase tracking-wider text-lime-400/30 transition-all hover:border-lime-400/30 hover:text-lime-400/60"
+                                        className="border border-lime-400/15 px-3 py-1 text-[10px] uppercase tracking-wider text-lime-400/50 transition-all hover:border-lime-400/30 hover:text-lime-400/60"
                                     >
                                         cancelar
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <p className="mt-2 text-xs text-lime-400/80">
+                            <p className="mt-2 text-xs text-lime-300">
                                 {c.content}
                             </p>
                         )}

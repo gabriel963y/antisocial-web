@@ -117,4 +117,23 @@ export const postService = {
             tag_id: tagId,
         })
     },
+
+    async getPostById(postId: string) {
+        const result = await api.get<Post | ApiResponse<Post>>(
+            `/posts/${postId}`,
+        )
+        return unwrapData(result)
+    },
+
+    async updatePost(postId: string, data: { description?: string }) {
+        return api.put(`/posts/${postId}`, data)
+    },
+
+    async deletePost(postId: string) {
+        return api.delete(`/posts/${postId}`)
+    },
+
+    async removeTag(postId: string, tagId: string) {
+        return api.delete(`/posts/${postId}/tags/${tagId}`)
+    },
 }

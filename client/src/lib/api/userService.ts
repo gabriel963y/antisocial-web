@@ -1,6 +1,8 @@
 import { api } from './client.ts'
 import { ENDPOINTS } from './endpoints.ts'
 import type { User } from '../../types/user.ts'
+import type { Post } from '../../types/post.ts'
+import type { Comment } from '../../types/comment.ts'
 
 interface PaginatedResponse<T> {
     data: T[]
@@ -32,8 +34,8 @@ export const userService = {
         api.delete<void>(`${ENDPOINTS.USERS}/${encodeURIComponent(nickName)}`),
 
     getPosts: (nickName: string) =>
-        api.get<unknown[]>(`${ENDPOINTS.USERS}/${encodeURIComponent(nickName)}/posts`),
+        api.get<Post[]>(`${ENDPOINTS.USERS}/${encodeURIComponent(nickName)}/posts`),
 
     getComments: (nickName: string) =>
-        api.get<unknown[]>(`${ENDPOINTS.USERS}/${encodeURIComponent(nickName)}/comments`),
+        api.get<Comment[]>(`${ENDPOINTS.USERS}/${encodeURIComponent(nickName)}/comments`),
 }

@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { postService } from '../../lib/api/postService.ts'
 import { getCommentCount, getPostId } from '../../lib/helpers/postHelpers.ts'
 import type { Post } from '../../types/post.ts'
+import { useAuth } from '../../hooks/useAuth.ts'
 import { CommentsModal } from '../comments/CommentsModal.tsx'
 import { PostCard } from './PostCard.tsx'
 
 const POSTS_LIMIT = 5//Esto es para lo del scroll infinito <---
 
 export function Feed() {
+    const { user } = useAuth()
     const [posts, setPosts] = useState<Post[]>([])
     const [selectedPost, setSelectedPost] = useState<Post | null>(null)
 
@@ -141,31 +144,58 @@ export function Feed() {
         updatePostCommentCount(getPostId(selectedPost), -1)
     }
 
+    const currentUserNickName =
+        (user as { nickName?: string } | null)?.nickName ?? ''
+
+    const handleRemoveTag = useCallback(
+        async (postId: string, tagId: string) => {
+            try {
+                await postService.removeTag(postId, tagId)
+
+                setPosts((prev) =>
+                    prev.map((p) => {
+                        if (getPostId(p) !== postId) return p
+                        return {
+                            ...p,
+                            tags: (p.tags ?? []).filter(
+                                (t) => (t.tag_id ?? t.id ?? t._id) !== tagId,
+                            ),
+                        }
+                    }),
+                )
+
+                toast.success('Etiqueta eliminada')
+            } catch {
+                toast.error('Error al eliminar la etiqueta')
+            }
+        },
+        [],
+    )
+
     return (
         <div className="mx-auto max-w-2xl px-4 py-8">
-            <div className="mb-6 flex items-center gap-2 text-sm text-lime-400/50">
+            <div className="mb-6 flex items-center gap-2 text-sm text-lime-400/70">
                 <span className="text-lime-400/70">{'>'}</span>
                 <span>inicio</span>
-                <span className="cursor-blink" />
             </div>
 
             {showInitialLoading && (
-                <div className="flex items-center justify-center border border-lime-400/10 bg-stone-950/50 py-16">
-                    <p className="text-xs text-lime-400/20">
+                <div className="flex items-center justify-center border border-lime-400/15 bg-stone-950/70 py-16">
+                    <p className="text-xs text-lime-400/35">
                         cargando publicaciones...
                     </p>
                 </div>
             )}
 
             {showError && (
-                <div className="border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <div className="border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                     {error}
                 </div>
             )}
 
             {showEmptyPosts && (
-                <div className="flex items-center justify-center border border-lime-400/10 bg-stone-950/50 py-16">
-                    <p className="text-xs text-lime-400/15">
+                <div className="flex items-center justify-center border border-lime-400/15 bg-stone-950/70 py-16">
+                    <p className="text-xs text-lime-400/30">
                         no hay posts para mostrar
                     </p>
                 </div>
@@ -175,12 +205,15 @@ export function Feed() {
                 <div className="flex flex-col gap-5">
                     {posts.map((post, postIndex) => {
                         const postId = getPostId(post)
+                        const postOwner = post.user_nickName ?? ''
+                        const canRemoveTag = currentUserNickName === postOwner
 
                         return (
                             <PostCard
                                 key={postId || postIndex}
                                 post={post}
                                 onOpenComments={openComments}
+                                onRemoveTag={canRemoveTag ? handleRemoveTag : undefined}
                             />
                         )
                     })}
@@ -190,7 +223,7 @@ export function Feed() {
                             ref={loaderRef}
                             className="flex items-center justify-center py-6"
                         >
-                            <p className="text-xs text-lime-400/25">
+                            <p className="text-xs text-lime-400/45">
                                 {loading
                                     ? 'cargando más posts...'
                                     : 'bajá para cargar más'}
@@ -199,7 +232,7 @@ export function Feed() {
                     )}
 
                     {showNoMorePosts && (
-                        <p className="py-6 text-center text-xs text-lime-400/20">
+                        <p className="py-6 text-center text-xs text-lime-400/35">
                             no hay más publicaciones
                         </p>
                     )}

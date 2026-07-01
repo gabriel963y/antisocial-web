@@ -54,50 +54,59 @@ export function UserProfile() {
     const isOwn = currentUser?.nickName === nickName
 
     return (
-        <div className="mx-auto max-w-5xl px-4 py-8">
-            <div className="mb-6 flex items-center gap-2 text-sm text-lime-400/50">
+        <div className="mx-auto max-w-2xl px-4 py-8">
+            <div className="mb-6 text-sm text-lime-400/70">
                 <span className="text-lime-400/70">{'>'}</span>
-                <span>perfil de {nickName}</span>
-                <span className="cursor-blink" />
+                <span className="ml-2">perfil de {nickName}</span>
             </div>
 
-            <div className="border border-lime-400/15 bg-stone-950/90 p-5">
-                <h3 className="mb-4 text-[10px] uppercase tracking-[0.15em] text-lime-400/25">
-                    [ {profileUser.nickName} ]
-                </h3>
-                <div className="flex items-start gap-4 min-w-0">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center border border-lime-400/20 bg-lime-400/[0.03]">
-                        <span className="text-base text-lime-400/60">
-                            {profileUser.nickName?.charAt(0).toUpperCase()}
-                        </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-lime-400/80">
-                            {profileUser.name} {profileUser.surname}
-                        </p>
-                        <p className="mt-0.5 truncate text-xs text-lime-400/30">
-                            @{profileUser.nickName} · {profileUser.email}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-lime-400/20">
-                            seguidores: {profileUser.followers ?? 0}
-                        </p>
+            <div className="glow-pulse overflow-hidden rounded-2xl border border-lime-400/40 bg-zinc-950 shadow-2xl transition-shadow hover:shadow-[0_0_30px_-6px_rgba(132,204,22,0.08)]">
+                <div className="px-6 pb-6 pt-6">
+                    <div className="flex items-start gap-4">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-lime-400/30 bg-lime-400/[0.08]">
+                            <span className="text-base font-semibold text-lime-400/80">
+                                {profileUser.nickName?.charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-base font-medium text-lime-300">
+                                {profileUser.name} {profileUser.surname}
+                            </p>
+                            <p className="mt-0.5 truncate text-xs text-lime-400/50">
+                                @{profileUser.nickName}
+                            </p>
+                            <p className="mt-2 text-xs text-lime-400/35">
+                                {profileUser.email}
+                            </p>
+                            <p className="mt-0.5 text-[10px] text-lime-400/45">
+                                seguidores: {profileUser.followers ?? 0}
+                            </p>
 
-                        {!isOwn && (
-                            <button
-                                onClick={handleToggleFollow}
-                                disabled={toggling}
-                                className={`mt-3 px-4 py-1.5 text-[11px] uppercase tracking-[0.15em] transition-all disabled:opacity-25 ${
-                                    isFollowing
-                                        ? 'border border-lime-400/30 text-lime-400/50 hover:border-rose-400/50 hover:text-rose-400'
-                                        : 'border border-lime-400/50 bg-lime-400/[0.06] text-lime-400 hover:bg-lime-400 hover:text-stone-950'
-                                }`}
-                            >
-                                {isFollowing ? 'dejar de seguir' : 'seguir'}
-                            </button>
-                        )}
+                            {!isOwn && (
+                                <button
+                                    onClick={handleToggleFollow}
+                                    disabled={toggling}
+                                    className={`mt-4 rounded-xl px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] transition-all disabled:opacity-25 ${
+                                        isFollowing
+                                            ? 'border border-lime-400/40 text-lime-400/70 hover:border-rose-400/50 hover:text-rose-400 hover:bg-rose-400/5'
+                                            : 'bg-lime-400 text-black hover:bg-lime-300'
+                                    }`}
+                                >
+                                    {isFollowing ? 'dejar de seguir' : 'seguir'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="mt-6 text-xs text-lime-400/60 transition-colors hover:text-lime-400/70"
+            >
+                {'<-'} volver
+            </button>
         </div>
     )
 }

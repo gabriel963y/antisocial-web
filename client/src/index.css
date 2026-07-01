@@ -2,33 +2,116 @@
 @import 'tailwindcss';
 
 body {
-    background-color: #050505;
+    background-color: #000000;
     background-image:
-        radial-gradient(circle at 25% 0%, rgba(163, 230, 53, 0.03) 0%, transparent 50%),
-        url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23a3e635' stroke-width='0.5' fill='none' opacity='0.04' /%3E%3C/svg%3E");
+        radial-gradient(circle at 25% 0%, rgba(163, 230, 53, 0.06) 0%, transparent 50%),
+        url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23a3e635' stroke-width='0.5' fill='none' opacity='0.07' /%3E%3C/svg%3E");
     font-family: 'JetBrains Mono', monospace;
     -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-    background: rgba(163, 230, 53, 0.25);
+    background: rgba(163, 230, 53, 0.35);
 }
 
-@keyframes block-pulse {
-    0%, 100% { opacity: 0.06; }
-    20%, 45% { opacity: 0.95; }
-    65% { opacity: 0.2; }
+@keyframes signal-bar {
+    0%, 100% { height: 4px; }
+    50% { height: 12px; }
 }
 
-@keyframes blink {
+.animate-signal {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+}
+
+.animate-signal span {
+    display: inline-block;
+    width: 3px;
+    background: currentColor;
+    border-radius: 1px;
+    animation: signal-bar 0.6s ease-in-out infinite;
+}
+
+.animate-signal span:nth-child(1) { animation-delay: 0s; }
+.animate-signal span:nth-child(2) { animation-delay: 0.1s; }
+.animate-signal span:nth-child(3) { animation-delay: 0.2s; }
+.animate-signal span:nth-child(4) { animation-delay: 0.3s; }
+
+/* ── CRT scanline ── */
+@keyframes scanline {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
+}
+
+.scanline-overlay {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+    );
+    animation: scanline 0.1s linear infinite;
+}
+
+/* ── Card glow pulse ── */
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px -8px rgba(163, 230, 53, 0.06); }
+    50% { box-shadow: 0 0 35px -4px rgba(163, 230, 53, 0.15); }
+}
+
+.glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* ── Terminal flicker ── */
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    92% { opacity: 1; }
+    93% { opacity: 0.85; }
+    94% { opacity: 1; }
+    96% { opacity: 0.92; }
+    97% { opacity: 1; }
+}
+
+.flicker {
+    animation: flicker 6s steps(1) infinite;
+}
+
+/* ── Matrix rain characters ── */
+@keyframes matrix-fall {
+    0% { transform: translateY(-20px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.matrix-char {
+    position: fixed;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(163, 230, 53, 0.08);
+    animation: matrix-fall linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── Typing cursor ── */
+@keyframes blink-cursor {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
 }
 
-.cursor-blink::after {
-    content: '▌';
-    animation: blink 1s step-end infinite;
-    color: #a3e635;
+.typing-cursor::after {
+    content: '█';
+    animation: blink-cursor 0.8s step-end infinite;
+    color: rgba(163, 230, 53, 0.6);
 }
 
 

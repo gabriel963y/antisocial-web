@@ -9,11 +9,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<Variant, string> = {
     primary:
-        'border border-lime-400/50 bg-lime-400/[0.06] text-lime-400 hover:bg-lime-400 hover:text-stone-950 active:scale-[0.98]',
+        'rounded-xl bg-lime-400 px-4 py-3 text-sm font-semibold text-black hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-50',
     secondary:
-        'border border-lime-400/10 text-lime-400/30 hover:border-lime-400/30 hover:text-lime-400/60',
+        'rounded-xl border border-lime-400/30 px-4 py-3 text-sm font-semibold text-lime-400/70 hover:bg-lime-400/10',
     danger:
-        'border border-rose-400/50 bg-rose-400/[0.06] text-rose-400 hover:bg-rose-400 hover:text-stone-950 active:scale-[0.98]',
+        'rounded-xl border border-red-400/40 bg-red-400/[0.12] px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-400 hover:text-black',
 }
 
 export function Button({
@@ -27,13 +27,10 @@ export function Button({
     return (
         <button
             disabled={disabled || isLoading}
-            className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium tracking-[0.15em] uppercase transition-all focus:outline-none focus:ring-1 focus:ring-lime-400/50 disabled:cursor-not-allowed disabled:opacity-25 ${variantStyles[variant]} ${className}`}
+            className={`transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]} ${className}`}
             {...props}
         >
-            {isLoading && (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border border-current border-t-transparent" />
-            )}
-            {children}
+            {isLoading ? 'cargando...' : children}
         </button>
     )
 }
