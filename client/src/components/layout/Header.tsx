@@ -4,8 +4,10 @@ import { useAuth } from '../../hooks/useAuth.ts'
 import { ConfirmModal } from '../ui/ConfirmModal.tsx'
 import { userService } from '../../lib/api/userService.ts'
 import type { User } from '../../types/user.ts'
-
-export function Header() {
+type HeaderProps = {
+    onOpenCreatePost: () => void
+}
+export function Header({ onOpenCreatePost }: HeaderProps)  {
     const { user, logout, deleteAccount } = useAuth()
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
@@ -17,7 +19,18 @@ export function Header() {
     const ref = useRef<HTMLDivElement>(null)
     const mobileRef = useRef<HTMLDivElement>(null)
 
-    const closeMobile = () => setMobileOpen(false)
+    const closeMobile = () => setMobileOpen(false)  
+
+    const handleOpenCreatePost = () => {
+    closeMobile()
+
+    if (!user) {
+        navigate('/login')
+        return
+    }
+
+    onOpenCreatePost()
+    }
 
     useEffect(() => {
         const handler = (e: MouseEvent) => {
@@ -152,12 +165,13 @@ export function Header() {
                         >
                             inicio
                         </Link>
-                        <Link
-                            to="/create"
-                            className="text-[11px] text-lime-400/30 hover:text-lime-400/60 transition-colors"
-                        >
-                            nuevo post
-                        </Link>
+                    <button
+                        type="button"
+                        onClick={handleOpenCreatePost}
+                        className="text-[11px] text-lime-400/30 hover:text-lime-400/60 transition-colors"
+                    >
+                        nuevo post
+                    </button>
                     </nav>
 
                     <div className="hidden md:relative md:block" ref={searchRef}>
@@ -238,13 +252,13 @@ export function Header() {
                         >
                             inicio
                         </Link>
-                        <Link
-                            to="/create"
-                            onClick={closeMobile}
-                            className="text-[11px] text-lime-400/40 hover:text-lime-400/70 transition-colors"
-                        >
-                            nuevo post
-                        </Link>
+                    <button
+                        type="button"
+                        onClick={handleOpenCreatePost}
+                        className="text-left text-[11px] text-lime-400/40 hover:text-lime-400/70 transition-colors"
+                    >
+                        nuevo post
+                    </button>
 
                         <div className="relative" ref={searchRef}>
                             {searchInput}
