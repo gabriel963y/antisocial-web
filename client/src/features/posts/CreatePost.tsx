@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { toast } from 'sonner'
 import { postService } from '../../lib/api/postService.ts'
 import { tagService } from '../../lib/api/tagService.ts'
@@ -16,12 +16,11 @@ export function CreatePost({ onClose }: CreatePostProps) {
     const [description, setDescription] = useState('')
     const [imageUrls, setImageUrls] = useState<string[]>([''])
 
-    const [tags, setTags] = useState<Tag[]>([])
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
-    const [newTagName, setNewTagName] = useState('')
+    const [existingTags, setExistingTags] = useState<Tag[]>([])
+    const [tagInput, setTagInput] = useState('')
+    const [postTags, setPostTags] = useState<string[]>([])
 
     const [loading, setLoading] = useState(false)
-    const [creatingTag, setCreatingTag] = useState(false)
     const [error, setError] = useState('')
 
     useEffect(() => {
@@ -31,60 +30,68 @@ export function CreatePost({ onClose }: CreatePostProps) {
     const loadTags = async () => {
         try {
             const tagsFromApi = await tagService.getTags()
-            setTags(tagsFromApi)
+            setExistingTags(tagsFromApi)
         } catch (error) {
             console.error('ERROR TAGS:', error)
             setError('No se pudieron cargar las etiquetas')
         }
     }
 
-    const toggleTag = (tagId: string) => {
-        if (selectedTags.includes(tagId)) {
-            setSelectedTags(selectedTags.filter((id) => id !== tagId))
-        } else {
-            setSelectedTags([...selectedTags, tagId])
-        }
+    const normalizeTagName = (tagName: string) => {
+        return tagName.trim().toLowerCase()
     }
 
-    const handleCreateTag = async () => {
+    const addTagToPost = () => {
         setError('')
 
-        if (!newTagName.trim()) {
-            setError('Escribí el nombre de la etiqueta')
+        const normalizedTag = normalizeTagName(tagInput)
+
+        if (!normalizedTag) {
+            setError('Escribí una etiqueta')
             return
         }
 
-        try {
-            setCreatingTag(true)
-
-            const createdTag = await tagService.createTag(newTagName.trim())
-            const createdTagId = getTagId(createdTag)
-
-            await loadTags()
-
-            if (createdTagId) {
-                setSelectedTags((previousTags) => {
-                    if (previousTags.includes(createdTagId)) {
-                        return previousTags
-                    }
-
-                    return [...previousTags, createdTagId]
-                })
-            }
-
-            setNewTagName('')
-            toast.success('Etiqueta creada correctamente')
-        } catch (error) {
-            console.error('ERROR CREANDO TAG:', error)
-
-            if (error instanceof Error) {
-                setError(error.message)
-            } else {
-                setError('No se pudo crear la etiqueta')
-            }
-        } finally {
-            setCreatingTag(false)
+        if (postTags.includes(normalizedTag)) {
+            setTagInput('')
+            return
         }
+
+        setPostTags([...postTags, normalizedTag])
+        setTagInput('')
+    }
+
+    const handleTagKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault()
+            addTagToPost()
+        }
+    }
+
+    const removeTagFromPost = (tagName: string) => {
+        setPostTags(postTags.filter((tag) => tag !== tagName))
+    }
+
+    const getOrCreateTagId = async (tagName: string) => {
+        const existingTag = existingTags.find(
+            (tag) => normalizeTagName(getTagName(tag)) === tagName,
+        )
+
+        if (existingTag) {
+            const existingTagId = getTagId(existingTag)
+
+            if (existingTagId) {
+                return existingTagId
+            }
+        }
+
+        const createdTag = await tagService.createTag(tagName)
+        const createdTagId = getTagId(createdTag)
+
+        if (!createdTagId) {
+            throw new Error(`No se pudo obtener el id de la etiqueta ${tagName}`)
+        }
+
+        return createdTagId
     }
 
     const handleImageChange = (index: number, value: string) => {
@@ -143,7 +150,8 @@ export function CreatePost({ onClose }: CreatePostProps) {
                 await postService.addImage(postId, url)
             }
 
-            for (const tagId of selectedTags) {
+            for (const tagName of postTags) {
+                const tagId = await getOrCreateTagId(tagName)
                 await postService.addTag(postId, tagId)
             }
 
@@ -197,7 +205,9 @@ export function CreatePost({ onClose }: CreatePostProps) {
 
                         <textarea
                             value={description}
-                            onChange={(event) => setDescription(event.target.value)}
+                            onChange={(event) =>
+                                setDescription(event.target.value)
+                            }
                             placeholder="¿Qué estás pensando?"
                             className="min-h-32 w-full resize-none rounded-xl border border-lime-400/30 bg-black/40 p-4 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/70"
                         />
@@ -214,7 +224,10 @@ export function CreatePost({ onClose }: CreatePostProps) {
                                     type="text"
                                     value={url}
                                     onChange={(event) =>
-                                        handleImageChange(index, event.target.value)
+                                        handleImageChange(
+                                            index,
+                                            event.target.value,
+                                        )
                                     }
                                     placeholder="URL de imagen"
                                     className="w-full rounded-xl border border-lime-400/20 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/60"
@@ -243,60 +256,45 @@ export function CreatePost({ onClose }: CreatePostProps) {
 
                     <div className="space-y-2">
                         <p className="text-xs text-lime-400/50">
-                            Crear nueva etiqueta
+                            Etiquetas
                         </p>
 
                         <div className="flex gap-2">
                             <input
                                 type="text"
-                                value={newTagName}
-                                onChange={(event) => setNewTagName(event.target.value)}
+                                value={tagInput}
+                                onChange={(event) =>
+                                    setTagInput(event.target.value)
+                                }
+                                onKeyDown={handleTagKeyDown}
                                 placeholder="Ej: humor"
                                 className="w-full rounded-xl border border-lime-400/20 bg-black/40 px-3 py-2 text-sm text-lime-100 outline-none placeholder:text-lime-400/30 focus:border-lime-400/60"
                             />
 
                             <button
                                 type="button"
-                                onClick={handleCreateTag}
-                                disabled={creatingTag || !newTagName.trim()}
+                                onClick={addTagToPost}
+                                disabled={!tagInput.trim()}
                                 className="rounded-xl border border-lime-400/30 px-4 text-xs font-semibold text-lime-400/70 hover:bg-lime-400/10 disabled:cursor-not-allowed disabled:opacity-30"
                             >
-                                {creatingTag ? '...' : 'crear'}
+                                agregar
                             </button>
                         </div>
-                    </div>
 
-                    <div className="space-y-2">
-                        <p className="text-xs text-lime-400/50">
-                            Etiquetas
-                        </p>
-
-                        {tags.length === 0 ? (
-                            <p className="text-xs text-lime-400/25">
-                                No hay etiquetas disponibles
-                            </p>
-                        ) : (
+                        {postTags.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                                {tags.map((tag, index) => {
-                                    const tagId = getTagId(tag)
-
-                                    if (!tagId) return null
-
-                                    return (
-                                        <button
-                                            key={tagId || index}
-                                            type="button"
-                                            onClick={() => toggleTag(tagId)}
-                                            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                                                selectedTags.includes(tagId)
-                                                    ? 'border-lime-400 bg-lime-400 text-black'
-                                                    : 'border-lime-400/20 text-lime-400/50 hover:border-lime-400/60 hover:text-lime-300'
-                                            }`}
-                                        >
-                                            {getTagName(tag)}
-                                        </button>
-                                    )
-                                })}
+                                {postTags.map((tagName) => (
+                                    <button
+                                        key={tagName}
+                                        type="button"
+                                        onClick={() =>
+                                            removeTagFromPost(tagName)
+                                        }
+                                        className="rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs text-lime-300 hover:border-red-400/40 hover:text-red-300"
+                                    >
+                                        #{tagName} ×
+                                    </button>
+                                ))}
                             </div>
                         )}
                     </div>

@@ -1,78 +1,87 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { commentService } from '../../lib/api/commentService.ts'
 import { useAuth } from '../../hooks/useAuth.ts'
-import { Button } from '../../components/ui/Button.tsx'
 
-const commentSchema = z.object({
-  content: z.string().min(1, 'el comentario es obligatorio'),
-})
-
-type CommentFormData = z.infer<typeof commentSchema>
-
-interface CommentFormProps {
-  postId: string
-  onCommentCreated: () => void
+type CommentFormProps = {
+    postId: string
+    onCommentCreated: () => void
 }
 
 export function CommentForm({ postId, onCommentCreated }: CommentFormProps) {
-  const { user: currentUser } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
+    const { user } = useAuth()
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CommentFormData>({
-    resolver: zodResolver(commentSchema),
-  })
+    const [content, setContent] = useState('')
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState('')
 
-  const onSubmit = async (data: CommentFormData) => {
-    if (!currentUser) return
-    setIsLoading(true)
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
-    try {
-      await commentService.create({
-        content: data.content,
-        user_nickName: currentUser.nickName,
-        post_id: postId,
-      })
-      reset()
-      toast.success('comentario agregado')
-      onCommentCreated()
-    } catch {
-      toast.error('error al publicar comentario')
-    } finally {
-      setIsLoading(false)
+        setError('')
+
+        if (!content.trim()) {
+            setError('El comentario es obligatorio')
+            return
+        }
+
+        if (!user) {
+            setError('Tenés que iniciar sesión para comentar')
+            return
+        }
+
+        try {
+            setIsLoading(true)
+            await commentService.createComment(
+                postId,
+                user.nickName,
+                content.trim(),
+            )
+
+            setContent('')
+            toast.success('Comentario publicado')
+            onCommentCreated()
+        } catch (error) {
+            console.error('ERROR CREANDO COMENTARIO:', error)
+            setError('No se pudo crear el comentario')
+        } finally {
+            setIsLoading(false)
+        }
     }
-  }
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs uppercase tracking-[0.15em] text-lime-400/40">
-          comentario
-        </label>
-        <textarea
-          {...register('content')}
-          rows={3}
-          className="border border-lime-400/15 bg-lime-400/[0.02] px-3 py-2 text-sm text-lime-300 outline-none placeholder:text-lime-400/15 focus:border-lime-400/40 resize-none"
-        />
-        {errors.content && (
-          <p className="flex items-center gap-1.5 text-xs text-rose-400/80">
-            <span className="inline-block h-3 w-[1px] bg-rose-400/40" />
-            {errors.content.message}
-          </p>
-        )}
-      </div>
+    return (
+        <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lime-400/20 bg-lime-400/[0.04]">
+                    <span className="text-xs font-semibold text-lime-400/60">
+                        {user?.nickName?.charAt(0).toUpperCase() ?? '?'}
+                    </span>
+                </div>
 
-      <Button type="submit" isLoading={isLoading}>
-        comentar
-      </Button>
-    </form>
-  )
+                <div className="flex flex-1 items-center rounded-2xl bg-lime-400/[0.08] px-4 py-2">
+                    <textarea
+                        value={content}
+                        onChange={(event) => setContent(event.target.value)}
+                        rows={1}
+                        placeholder="Escribe un comentario..."
+                        className="max-h-24 min-h-8 w-full resize-none bg-transparent text-sm text-lime-100 outline-none placeholder:text-lime-400/30"
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={isLoading || !content.trim()}
+                        className="ml-3 text-lg text-lime-400/50 hover:text-lime-300 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                        ➤
+                    </button>
+                </div>
+            </div>
+
+            {error && (
+                <p className="ml-12 text-xs text-rose-400/80">
+                    {error}
+                </p>
+            )}
+        </form>
+    )
 }

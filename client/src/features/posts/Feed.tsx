@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { postService } from '../../lib/api/postService.ts'
+import { CommentForm } from '../comments/CommentForm.tsx'
+import { CommentList } from '../comments/CommentList.tsx'
 import {
     getCommentCount,
     getPostId,
@@ -16,6 +17,9 @@ const POSTS_LIMIT = 5
 
 export function Feed() {
     const [posts, setPosts] = useState<Post[]>([])
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+    const [reloadCommentsKey, setReloadCommentsKey] = useState(0)
+
     const [page, setPage] = useState(1)
     const [total, setTotal] = useState(0)
     const [loading, setLoading] = useState(false)
@@ -23,7 +27,6 @@ export function Feed() {
     const [error, setError] = useState('')
 
     const loaderRef = useRef<HTMLDivElement | null>(null)
-
     const hasMore = posts.length < total
 
     useEffect(() => {
@@ -58,7 +61,10 @@ export function Feed() {
             if (pageToLoad === 1) {
                 setPosts(result.posts)
             } else {
-                setPosts((previousPosts) => [...previousPosts, ...result.posts])
+                setPosts((previousPosts) => [
+                    ...previousPosts,
+                    ...result.posts,
+                ])
             }
 
             setTotal(result.total)
@@ -70,6 +76,37 @@ export function Feed() {
             setLoading(false)
             setInitialLoading(false)
         }
+    }
+
+    const updatePostCommentCount = (postId: string, amount: number) => {
+        setPosts((previousPosts) =>
+            previousPosts.map((post) => {
+                if (getPostId(post) !== postId) return post
+
+                const currentCount = getCommentCount(post)
+                const nextCount = Math.max(currentCount + amount, 0)
+
+                return {
+                    ...post,
+                    commentsCount: nextCount,
+                    commentCount: nextCount,
+                }
+            }),
+        )
+
+        setSelectedPost((previousPost) => {
+            if (!previousPost) return previousPost
+            if (getPostId(previousPost) !== postId) return previousPost
+
+            const currentCount = getCommentCount(previousPost)
+            const nextCount = Math.max(currentCount + amount, 0)
+
+            return {
+                ...previousPost,
+                commentsCount: nextCount,
+                commentCount: nextCount,
+            }
+        })
     }
 
     const renderImageGrid = (images: PostImage[]) => {
@@ -158,6 +195,25 @@ export function Feed() {
         )
     }
 
+    const renderTags = (post: Post) => {
+        if (!post.tags || post.tags.length === 0) return null
+
+        return (
+            <div className="px-4 pt-3">
+                <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag, tagIndex) => (
+                        <span
+                            key={getTagId(tag) || tagIndex}
+                            className="rounded-full border border-lime-400/25 bg-lime-400/[0.06] px-3 py-1 text-xs text-lime-400/60"
+                        >
+                            #{getTagName(tag)}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="mx-auto max-w-2xl px-4 py-8">
             <div className="mb-6 flex items-center gap-2 text-sm text-lime-400/50">
@@ -220,19 +276,6 @@ export function Feed() {
                                     <p className="whitespace-pre-wrap text-sm leading-6 text-lime-100/80">
                                         {post.description}
                                     </p>
-
-                                    {post.tags && post.tags.length > 0 && (
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {post.tags.map((tag, tagIndex) => (
-                                                <span
-                                                    key={getTagId(tag) || tagIndex}
-                                                    className="rounded-full border border-lime-400/20 px-3 py-1 text-xs text-lime-400/50"
-                                                >
-                                                    #{getTagName(tag)}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
 
                                 {images.length > 0 && (
@@ -241,15 +284,21 @@ export function Feed() {
                                     </div>
                                 )}
 
+                                {renderTags(post)}
+
                                 <div className="mt-4 border-t border-lime-400/10 px-4 py-3">
                                     <div className="flex items-center justify-between">
                                         {postId ? (
-                                            <Link
-                                                to={`/post/${postId}`}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedPost(post)
+                                                    setReloadCommentsKey(0)
+                                                }}
                                                 className="text-xs font-medium uppercase tracking-[0.15em] text-lime-400/55 hover:text-lime-300"
                                             >
                                                 Comentar
-                                            </Link>
+                                            </button>
                                         ) : (
                                             <span className="text-xs text-lime-400/20">
                                                 Comentar
@@ -271,7 +320,9 @@ export function Feed() {
                             className="flex items-center justify-center py-6"
                         >
                             <p className="text-xs text-lime-400/25">
-                                {loading ? 'cargando más posts...' : 'bajá para cargar más'}
+                                {loading
+                                    ? 'cargando más posts...'
+                                    : 'bajá para cargar más'}
                             </p>
                         </div>
                     )}
@@ -281,6 +332,72 @@ export function Feed() {
                             no hay más publicaciones
                         </p>
                     )}
+                </div>
+            )}
+
+            {selectedPost && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-4">
+                    <div className="flex max-h-[90dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-lime-400/20 bg-zinc-950 text-lime-100 shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-lime-400/10 px-5 py-4">
+                            <h2 className="text-lg font-semibold text-lime-300">
+                                Comentarios
+                            </h2>
+
+                            <button
+                                type="button"
+                                onClick={() => setSelectedPost(null)}
+                                className="rounded-full px-3 py-1 text-xl text-lime-400/60 hover:bg-lime-400/10 hover:text-lime-300"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-5 py-4">
+                            <div className="mb-5 border-b border-lime-400/10 pb-4">
+                                <div className="mb-3 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-lime-400/20 bg-lime-400/[0.04]">
+                                        <span className="text-sm font-semibold text-lime-400/60">
+                                            {getPostUser(selectedPost)
+                                                .charAt(0)
+                                                .toUpperCase()}
+                                        </span>
+                                    </div>
+
+                                    <p className="text-sm font-semibold text-lime-400/80">
+                                        {getPostUser(selectedPost)}
+                                    </p>
+                                </div>
+
+                                <p className="whitespace-pre-wrap text-sm leading-6 text-lime-100/80">
+                                    {selectedPost.description}
+                                </p>
+                            </div>
+
+                            <CommentList
+                                key={reloadCommentsKey}
+                                postId={getPostId(selectedPost)}
+                                postOwnerNickName={getPostUser(selectedPost)}
+                                onCommentDeleted={() => {
+                                    updatePostCommentCount(
+                                        getPostId(selectedPost),
+                                        -1,
+                                    )
+                                }}
+                            />
+                        </div>
+
+                        <div className="border-t border-lime-400/10 px-5 py-4">
+                            <CommentForm
+                                postId={getPostId(selectedPost)}
+                                onCommentCreated={() => {
+                                    const postId = getPostId(selectedPost)
+
+                                    setReloadCommentsKey((key) => key + 1)
+                                    updatePostCommentCount(postId, 1)
+                                }}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

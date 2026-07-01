@@ -4,6 +4,7 @@ import type {
     CreatedPost,
     Post,
     PostImage,
+    Tag,
 } from '../../types/post.ts'
 
 const normalizeList = <T,>(result: T[] | ApiResponse<T[]>) => {
@@ -43,6 +44,14 @@ export const postService = {
         return normalizeList(result)
     },
 
+    async getPostTags(postId: string) {
+        const result = await api.get<Tag[] | ApiResponse<Tag[]>>(
+            `/posts/${postId}/tags`,
+        )
+
+        return normalizeList(result)
+    },
+
     async getPosts(page = 1, limit = 5) {
         const result = await api.get<Post[] | ApiResponse<Post[]>>(
             `/posts?page=${page}&limit=${limit}`,
@@ -54,7 +63,7 @@ export const postService = {
             ? posts.length
             : result.total ?? posts.length
 
-        const postsWithImages = await Promise.all(
+        const postsWithExtras = await Promise.all(
             posts.map(async (post) => {
                 const postId = getPostIdFromPost(post)
 
@@ -62,29 +71,35 @@ export const postService = {
                     return {
                         ...post,
                         images: [],
+                        tags: [],
                     }
                 }
 
                 try {
-                    const images = await postService.getPostImages(postId)
+                    const [images, tags] = await Promise.all([
+                        postService.getPostImages(postId),
+                        postService.getPostTags(postId),
+                    ])
 
                     return {
                         ...post,
                         images,
+                        tags,
                     }
                 } catch (error) {
-                    console.error(`ERROR IMÁGENES POST ${postId}:`, error)
+                    console.error(`ERROR EXTRAS POST ${postId}:`, error)
 
                     return {
                         ...post,
                         images: [],
+                        tags: [],
                     }
                 }
             }),
         )
 
         return {
-            posts: postsWithImages,
+            posts: postsWithExtras,
             total,
         }
     },
