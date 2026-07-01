@@ -1,4 +1,4 @@
 [submodule "api"]
 	path = api
-	url = https://github.com/EP-UnaHur-2026C1/anti-social-documental-tp-i-use-arch-btw
-	branch = feat/frontend-integration
+	url = https://github.com/gabriel963y/anti-social-documental-tp-i-use-arch-btw
+	branch = main
