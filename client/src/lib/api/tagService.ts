@@ -1,23 +1,6 @@
 import { api } from './client.ts'
+import { normalizeList, unwrapData } from '../helpers/apiHelpers.ts'
 import type { ApiResponse, Tag } from '../../types/post.ts'
-
-const normalizeList = <T,>(result: T[] | ApiResponse<T[]>) => {
-    if (Array.isArray(result)) {
-        return result
-    }
-
-    if (Array.isArray(result.data)) {
-        return result.data
-    }
-
-    return []
-}
-
-const unwrapData = <T,>(result: T | ApiResponse<T>): T => {
-    const response = result as ApiResponse<T>
-
-    return response.data ?? (result as T)
-}
 
 export const tagService = {
     async getTags(): Promise<Tag[]> {
@@ -34,6 +17,6 @@ export const tagService = {
             description: name,
         })
 
-        return unwrapData<Tag>(result)
+        return unwrapData(result)
     },
 }

@@ -7,9 +7,16 @@ import type { Post } from '../../types/post.ts'
 type CommentsModalProps = {
     post: Post
     onClose: () => void
+    onCommentCreated?: () => void
+    onCommentDeleted?: () => void
 }
 
-export function CommentsModal({ post, onClose }: CommentsModalProps) {
+export function CommentsModal({
+    post,
+    onClose,
+    onCommentCreated,
+    onCommentDeleted,
+}: CommentsModalProps) {
     const [reloadKey, setReloadKey] = useState(0)
 
     const postId = getPostId(post)
@@ -57,13 +64,19 @@ export function CommentsModal({ post, onClose }: CommentsModalProps) {
                         key={reloadKey}
                         postId={postId}
                         postOwnerNickName={postOwnerNickName}
+                        onCommentDeleted={() => {
+                            onCommentDeleted?.()
+                        }}
                     />
                 </div>
 
                 <div className="border-t border-lime-400/10 px-5 py-4">
                     <CommentForm
                         postId={postId}
-                        onCommentCreated={() => setReloadKey((key) => key + 1)}
+                        onCommentCreated={() => {
+                            setReloadKey((key) => key + 1)
+                            onCommentCreated?.()
+                        }}
                     />
                 </div>
             </div>

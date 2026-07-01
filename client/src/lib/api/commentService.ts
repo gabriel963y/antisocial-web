@@ -1,26 +1,7 @@
 import { api } from './client.ts'
+import { normalizeList, unwrapData } from '../helpers/apiHelpers.ts'
 import type { Comment } from '../../types/comment.ts'
-
-type ApiResponse<T> = {
-    data?: T
-    total?: number
-    page?: number
-    limit?: number
-    message?: string
-}
-
-const API_URL = 'http://localhost:3000/api'
-
-const normalizeList = <T,>(result: T[] | ApiResponse<T[]>): T[] => {
-    if (Array.isArray(result)) return result
-    if (Array.isArray(result.data)) return result.data
-    return []
-}
-
-const unwrapData = <T,>(result: T | ApiResponse<T>): T => {
-    const response = result as ApiResponse<T>
-    return response.data ?? (result as T)
-}
+import type { ApiResponse } from '../../types/post.ts'
 
 type CreateCommentData = {
     content: string
@@ -30,14 +11,6 @@ type CreateCommentData = {
 
 export const commentService = {
     async getByPost(postId: string) {
-        const result = await api.get<Comment[] | ApiResponse<Comment[]>>(
-            `/posts/${postId}/comments`,
-        )
-
-        return normalizeList(result)
-    },
-
-    async getPostComments(postId: string) {
         const result = await api.get<Comment[] | ApiResponse<Comment[]>>(
             `/posts/${postId}/comments`,
         )
@@ -90,12 +63,17 @@ export const commentService = {
     },
 
     async remove(id: string) {
-        const response = await fetch(`${API_URL}/comments/${id}`, {
+        if (!id) {
+            throw new Error('No se recibió el id del comentario')
+        }
+
+        const response = await fetch(`http://localhost:3000/api/comments/${id}`, {
             method: 'DELETE',
         })
 
         if (!response.ok) {
-            throw new Error('No se pudo eliminar el comentario')
+            const errorText = await response.text()
+            throw new Error(errorText || 'No se pudo eliminar el comentario')
         }
     },
 }

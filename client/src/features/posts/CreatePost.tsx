@@ -156,11 +156,9 @@ export function CreatePost({ onClose }: CreatePostProps) {
             }
 
             toast.success('Publicación creada correctamente')
-            onClose()
 
-            setTimeout(() => {
-                window.location.reload()
-            }, 500)
+            window.dispatchEvent(new Event('post-created'))
+            onClose()
         } catch (error) {
             console.error('ERROR CREANDO POST:', error)
 
@@ -298,12 +296,11 @@ export function CreatePost({ onClose }: CreatePostProps) {
                             </div>
                         )}
                     </div>
-
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="w-full rounded-xl border border-lime-400/20 px-4 py-3 text-sm font-semibold text-lime-400/50 hover:bg-lime-400/10"
+                            className="w-full rounded-xl border border-lime-400/20 px-3 py-2 text-xs font-semibold text-lime-400/50 hover:bg-lime-400/10 sm:px-4 sm:py-3 sm:text-sm"
                         >
                             Cancelar
                         </button>
@@ -311,7 +308,7 @@ export function CreatePost({ onClose }: CreatePostProps) {
                         <button
                             type="submit"
                             disabled={loading || !description.trim()}
-                            className="w-full rounded-xl bg-lime-400 px-4 py-3 text-sm font-semibold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-30"
+                            className="w-full rounded-xl bg-lime-400 px-3 py-2 text-xs font-semibold text-black disabled:cursor-not-allowed sm:px-4 sm:py-3 sm:text-sm"
                         >
                             {loading ? 'Publicando...' : 'Publicar'}
                         </button>
